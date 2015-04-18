@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns     = "http://www.w3.org/ns/widgets"
+        xmlns:gap = "http://phonegap.com/ns/1.0"
+        id        = "org.coenraets.employeedirectory"
+        versionCode="10"
+        version   = "1.1.0">
+
+    <!-- versionCode is optional and Android only -->
+
+    <name>Aquino</name>
+
+    <description>An aquarium automation application</description>
+
+    <author href="http://aquino.org" email="witz.sebastien@gmail.com">Sebastien WITZ</author>
+
+</widget>

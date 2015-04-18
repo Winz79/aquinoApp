@@ -1,41 +1,211 @@
-<!DOCTYPE html>
-<!--
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-        <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <title>Hello World</title>
-    </head>
+
+    <link rel="stylesheet" href="./lib/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <link rel="stylesheet" href="./lib/jqwidgets/styles/jqx.windowsphone.css" type="text/css" />
+    <link rel="stylesheet" href="./lib/jqwidgets/styles/jqx.blackberry.css" type="text/css" />
+    <link rel="stylesheet" href="./lib/jqwidgets/styles/jqx.android.css" type="text/css" />
+    <link rel="stylesheet" href="./lib/jqwidgets/styles/jqx.mobile.css" type="text/css" />
+	<link rel="stylesheet" href="css/themes/default/jquery.mobile-1.4.5.min.css">
+	<link rel="stylesheet" href="css/themes/default/jquery.mobile.theme-1.4.5.min.css">
+	<link rel="stylesheet" href="css/styles.css">
+<style>
+.mobile-container {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    overflow-x: hidden;
+    font-size: 16px;
+    -moz-box-sizing: border-box;
+    box-sizing:border-box;
+    padding-top: 40px;
+    padding-bottom: 5px;
+}
+</style>
+	<script src="lib/jquery-1.8.2.min.js"></script>
+	<script src="lib/jquery.mobile-1.4.5.min.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxdata.js"></script>
+    <script type="text/javascript" src="./simulator.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxchart.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxgauge.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxswitchbutton.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxcheckbox.js"></script>
+    <script type="text/javascript" src="./lib/jqwidgets/jqxbuttons.js"></script>
+
+    <script type="text/javascript">
+	    var HttpClient = function() {
+	        this.get = function(aUrl, aCallback) {
+	            var anHttpRequest = new XMLHttpRequest();
+	            anHttpRequest.onreadystatechange = function() { 
+	                if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+	                    aCallback(anHttpRequest.responseText);
+	            }
+	
+	            anHttpRequest.open( "GET", aUrl, true );            
+	            anHttpRequest.send( null );
+	        }
+	    }
+    
+    	function getRelayStatus() {
+        	var tmp = 0;
+        	for(var i = 0; i < 5; i++) {
+            	tmp += $('#flip' + (i+1))[0].selectedIndex << i;
+        	}
+        	return tmp;
+    	}
+
+    	function setRelayStatus(status) {
+        	for(var i = 0; i < 5; i++) {
+            	var state = (status & (1 << i)) >> i;
+        		$('#flip' + (i+1))[0].selectedIndex = state;
+        		$('#flip' + (i+1)).slider('refresh');
+        	}
+    	}
+
+        function getData() {
+            $.getJSON( "https://api.thingspeak.com/channels/28340/field/1/last.json", function( data ) {
+		      	  var value = data.field1;
+		      	  $('#linearGauge').jqxLinearGauge('value', value);
+		      	});
+            $.getJSON( "https://api.thingspeak.com/channels/28340/field/2/last.json", function( data ) {
+		      	  var value = data.field2;
+		      	  setRelayStatus(value);
+		      	});
+	      	setTimeout("getData()",5000);
+        }
+
+    	var labels = { interval: 20 };
+        $(document).ready(function () {
+            $(document.body).css('visibility', 'visible');
+            var theme ="android";
+           
+            $('#linearGauge').jqxLinearGauge({
+                theme : theme,
+                orientation: 'vertical',
+                
+                height: '100%',
+                ticksMajor: { size: '10%', interval: 1 },
+                ticksMinor: { size: '5%', interval: 0.25, style: { 'stroke-width': 1, stroke: '#aaaaaa' } },
+                max: 28,
+                min: 22,
+                pointer: { size: '20%' },
+                colorScheme: 'scheme05',
+                labels: {
+                    interval: 1, formatValue: function (value, position) {
+                        if (value === 20) {
+                            return 'C';
+                        }
+                        return value;
+                    },
+                    position: 'near'
+                },
+                ranges: [
+                { startValue: 24.5, endValue: 25.5, style: { fill: '#FFA200', stroke: '#FFA200' } },
+                ],
+                animationDuration: 1500
+            });
+
+            $('#linearGauge').jqxLinearGauge('value', 25);
+
+            $('.jqx-switchbutton').on('checked', function (event) {
+                $('#events').text(label[event.target.id] + ': Checked');
+            });
+            $('.jqx-switchbutton').on('unchecked', function (event) {
+                $('#events').text(label[event.target.id] + ': Unchecked');
+            });
+
+            $( ".ui-slider-switch" ).bind( "change", function(event, ui) {
+            	$('#events').text('Status = ' + getRelayStatus());
+            	
+            	var id = event.target.id.replace('flip','') - 1;
+            	var state = event.target.selectedIndex;
+            	var aClient = new HttpClient();
+            	aClient.get('http://192.168.1.16/Command.lua?cmd=setRelayrelay&id=' + id + '&state=' + state, function(response) {
+            	    // do something with response
+            	});
+            	});
+        	setRelayStatus(15);
+
+            $.event.special.swipe.horizontalDistanceThreshold = 120;
+            $(document).on("swipeleft", "#mainpage", function() {
+                $.mobile.changePage("#settings",{ transition: "slide"});
+            });
+            $(document).on("swiperight", "#settings", function() {
+                $.mobile.changePage("#mainpage",{ transition: "slide", reverse:"true"});
+            });
+
+            getData();
+        });
+
+
+    	
+    </script>
     <body>
-        <div class="app">
-            <h1>Apache Cordova</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
-            </div>
-        </div>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-    </body>
+
+<div data-role="page" id="mainpage">
+
+	<div data-role="header">
+		<h1>Aquino</h1>
+		<a href="#settings" data-transition="slide" class="ui-btn ui-btn-right ui-corner-all ui-shadow ui-icon-gear ui-btn-icon-notext">Settings</a>
+		<!-- <div data-role="navbar">
+			<ul>
+				<li><a href="#" class="ui-btn-active ui-state-persist">Menu item 1</a></li>
+				<li><a href="MainCoontrol.html">Menu item 2</a></li>
+				<li><a href="#">Menu item 3</a></li>
+			</ul>
+		</div>-->
+	</div><!-- /header -->
+
+	<div data-role="content" class="ui-grid-a my-breakpoint">
+	
+  		<div style="font-size: 13px; float:right;" id="linearGauge" class="ui-block-b"></div>
+			<div class="ui-body ui-body-a ui-corner-all ui-block-a" >
+				<div data-role="fieldcontain">
+				<label for="flip1">Filter</label>
+				<select name="flip1" id="flip1" data-role="slider">
+					<option value="off">Off</option>
+					<option value="on">On</option>
+				</select>
+				</div> 
+				<div data-role="fieldcontain">
+				<label for="flip2">Heater</label>
+				<select name="flip2" id="flip2" data-role="slider">
+					<option value="off">Off</option>
+					<option value="on">On</option>
+				</select>
+				</div>
+				<div data-role="fieldcontain">
+					<label for="flip3">Pump</label>
+					<select name="flip3" id="flip3" data-role="slider">
+						<option value="off">Off</option>
+						<option value="on">On</option>
+					</select>
+				</div>
+				<div data-role="fieldcontain">
+					<label for="flip4">Light</label>
+					<select name="flip4" id="flip4" data-role="slider">
+						<option value="off">Off</option>
+						<option value="on">On</option>
+					</select>
+				</div>
+				<div data-role="fieldcontain">
+					<label for="flip5">CO2</label>
+					<select name="flip5" id="flip5" data-role="slider">
+						<option value="off">Off</option>
+						<option value="on">On</option>
+					</select>
+				</div>
+			</div>
+	</div>
+
+</div><!-- /page -->	
+<div data-role="page" id="settings">
+
+	<div data-role="header">
+		<h1>Aquino - Settings</h1>
+		<a href="#mainpage" data-transition="slide"  data-direction="reverse" class="ui-btn ui-corner-all ui-shadow ui-icon-back ui-btn-icon-left ui-btn-icon-notext">Back</a>
+	</div>
+</div>
+</body>
 </html>
